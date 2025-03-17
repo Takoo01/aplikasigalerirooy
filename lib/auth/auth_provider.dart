@@ -20,7 +20,7 @@ class AuthProvider with ChangeNotifier {
 
   User? get user => _user;
 
-  bool get isAuthenticated => _user != null; // ✅ Tambahkan getter ini!
+  bool get isAuthenticated => _user != null;
 
   void _checkUserStatus() {
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
@@ -37,7 +37,6 @@ class AuthProvider with ChangeNotifier {
         password: password,
       );
 
-      // ✅ Ambil userId setelah login sukses
       String userId = userCredential.user!.uid;
 
       // 🔥 Reset & Load Saved Images untuk akun baru
@@ -52,21 +51,22 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-
   // 🔥 Fungsi Register
   Future<String?> register(String email, String password, String username) async {
     try {
-      UserCredential userCredential =
-      await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
       User? user = userCredential.user;
 
       if (user != null) {
+        // Jangan sertakan field 'profileImage'
         await _firestore.collection('users').doc(user.uid).set({
           'banned': '',
           'username': username,
           'email': email,
           'role': '',
-          'profileImage': '',
           'createdAt': FieldValue.serverTimestamp(),
         });
 
@@ -94,8 +94,6 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
-
-
   // 🔥 Sinkronisasi Data dari Firestore ke AuthProvider
   Future<void> _syncUserData(User user) async {
     DocumentSnapshot userDoc = await _firestore.collection('users').doc(user.uid).get();
@@ -107,7 +105,8 @@ class AuthProvider with ChangeNotifier {
         await user.updateDisplayName(username);
       }
 
-      if (user.photoURL != profilePicture && profilePicture.isNotEmpty) {
+      // Hanya update foto profil jika ada URL gambar yang valid
+      if (profilePicture.isNotEmpty && user.photoURL != profilePicture) {
         await user.updatePhotoURL(profilePicture);
       }
 

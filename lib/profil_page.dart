@@ -75,9 +75,11 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         }
 
         var userData = snapshot.data!;
-        String username = userData['username'] ?? 'Pengguna';
-        String profilePicture = userData['profileImage'] ?? 'assets/profil_default.jpg';
-        String email = userData['email'] ?? '';
+        Map<String, dynamic> userDataMap = userData.data() as Map<String, dynamic>? ?? {};
+        String username = userDataMap['username'] ?? 'Pengguna';
+        String email = userDataMap['email'] ?? '';
+        String profilePicture = (userDataMap['profileImage'] ?? '') as String;
+
 
         return Scaffold(
           appBar: AppBar(
@@ -101,7 +103,9 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                 children: [
                   CircleAvatar(
                     radius: 60,
-                    backgroundImage: NetworkImage(profilePicture),
+                    backgroundImage: profilePicture.isNotEmpty
+                        ? NetworkImage(profilePicture)
+                        : const AssetImage('assets/profil_default.jpg') as ImageProvider,
                   ),
                   IconButton(
                     icon: const Icon(Icons.camera_alt, color: Colors.blue),
